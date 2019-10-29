@@ -21,5 +21,3 @@ $queue = new RedisQueue([
 //     $obj->acknowledge($message);
 //     //$obj->reject($message);
 // });
-
-//////////////////////////////RabbitMQQueue
