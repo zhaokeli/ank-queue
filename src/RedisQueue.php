@@ -25,7 +25,7 @@ class RedisQueue
      */
     public function __construct($config = [], $exchangeName = 'default')
     {
-        $this->setExchangeName($exchangeName);
+        $this->exchangeName = $exchangeName;
         foreach ($config as $key => $value) {
             $this->$key = $value;
         }
@@ -62,7 +62,7 @@ class RedisQueue
         if (!is_string($msgData)) {
             $msgData = json_encode($msgData);
         }
-        $fooQueue = $this->conn->createQueue($this->exchangeName . ':' . $this->msgType);
+        $fooQueue = $this->conn->createQueue($this->exchangeName . ':' . $msgType);
         $message  = $this->conn->createMessage($msgData);
         return $this->conn->createProducer()->send($fooQueue, $message);
     }
@@ -77,7 +77,7 @@ class RedisQueue
     public function getMessage($queueName)
     {
         $this->conn || $this->initConn();
-        $fooQueue = $this->conn->createQueue($this->exchangeName . ':' . $this->queueName);
+        $fooQueue = $this->conn->createQueue($this->exchangeName . ':' . $queueName);
         $consumer = $this->conn->createConsumer($fooQueue);
         $message  = $consumer->receive(1000);
         if ($message) {
@@ -107,7 +107,7 @@ class RedisQueue
         // //设置消息回调
         // $this->queue->consume($receiveMessagefunc);
         $this->conn || $this->initConn();
-        $fooQueue = $this->conn->createQueue($this->exchangeName . ':' . $this->queueName);
+        $fooQueue = $this->conn->createQueue($this->exchangeName . ':' . $queueName);
         $consumer = $this->conn->createConsumer($fooQueue);
         while (true) {
             $message = $consumer->receive();
@@ -132,7 +132,7 @@ class RedisQueue
      */
     public function deleteQueue($queueName)
     {
-        return $this->conn->deleteQueue($this->exchangeName . ':' . $this->queueName);
+        return $this->conn->deleteQueue($this->exchangeName . ':' . $queueName);
     }
     /**
      * 清空队列中的消息
@@ -144,6 +144,6 @@ class RedisQueue
      */
     public function clearQueue($queueName)
     {
-        return $this->conn->deleteQueue($this->exchangeName . ':' . $this->queueName);
+        return $this->conn->deleteQueue($this->exchangeName . ':' . $queueName);
     }
 }
