@@ -1,0 +1,28 @@
+{
+    "name": "mokuyu/ank-queue",
+    "description": "redis MessageQueue",
+    "license": "MIT",
+    "authors": [
+    {
+        "name": "mokuyu",
+        "email": "735579768@qq.com"
+    }],
+    "autoload":
+    {
+        "psr-4":
+        {
+            "ank\\queue\\": "src"
+        }
+    },
+    "require":
+    {
+        "enqueue/redis": "^0.9.12"
+    },
+    "extra":
+    {
+        "branch-alias":
+        {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
