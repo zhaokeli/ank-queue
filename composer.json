@@ -1,5 +1,5 @@
 {
-    "name": "mokuyu/ank-queue",
+    "name": "mokuyu/queue",
     "description": "redis MessageQueue",
     "license": "MIT",
     "authors": [
@@ -11,7 +11,7 @@
     {
         "psr-4":
         {
-            "ank\\queue\\": "src"
+            "mokuyu\\queue\\": "src"
         }
     },
     "require":

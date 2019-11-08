@@ -1,5 +1,5 @@
 <?php
-use ank\queue\RabbitMQQueue;
+use mokuyu\queue\RabbitMQQueue;
 //包含自动加载类
 $loader = require __DIR__ . '/vendor/autoload.php';
 
@@ -39,6 +39,6 @@ $obj->receiveMessage('order', function ($envelope, $queue) {
     //取消息内容
     $msg = $envelope->getBody();
     echo $msg . "\n"; //处理消息
-    //显式确认，队列收到消费者显式确认后，会删除该消息
+                      //显式确认，队列收到消费者显式确认后，会删除该消息
     $queue->ack($envelope->getDeliveryTag());
 });

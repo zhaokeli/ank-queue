@@ -1,5 +1,5 @@
 <?php
-use ank\queue\RedisQueue;
+use mokuyu\queue\RedisQueue;
 //包含自动加载类
 $loader = require __DIR__ . '/vendor/autoload.php';
 

@@ -1,5 +1,5 @@
 <?php
-namespace ank\queue;
+namespace mokuyu\queue;
 
 /**
  * 消息队列管理
@@ -9,25 +9,41 @@ namespace ank\queue;
  */
 class RabbitMQQueue
 {
-    protected $host         = '127.0.0.1';
-    protected $port         = '5672';
-    protected $username     = 'guest';
-    protected $password     = 'guest';
-    protected $vhost        = '/';
-    protected $exchangeName = ''; //交换机名字
-    protected $routeName    = ''; //路由
-    protected $queueName    = ''; //队列
-    protected $conn         = null;
-    protected $channel      = null;
-    protected $exchange     = null;
-    protected $queue        = null;
+    protected $channel = null;
+
+    //队列
+    protected $conn = null;
+
+    protected $exchange = null;
+
+    protected $exchangeName = '';
+
+    protected $host = '127.0.0.1';
+
+    protected $password = 'guest';
+
+    protected $port = '5672';
+
+    protected $queue = null;
+
+    //路由
+    protected $queueName = '';
+
+    //交换机名字
+    protected $routeName = '';
+
+    protected $username = 'guest';
+
+    protected $vhost = '/';
+
     /**
      * 初始化配置
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @param    array      $config       连接配置信息
-     * @param    string     $exchangeName 交换机名字(项目名字)
+     * @Author   mokuyu
+     *
+     * @param array  $config       连接配置信息
+     * @param string $exchangeName 交换机名字(项目名字)
      */
     public function __construct($config = [], $exchangeName = 'default')
     {
@@ -36,12 +52,115 @@ class RabbitMQQueue
             $this->$key = $value;
         }
     }
+
+    /**
+     * 清空队列中的消息
+     * @authname [权限名字]     0
+     * @DateTime 2019-09-20
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName [description]
+     * @return [type]
+     */
+    public function clearQueue($queueName)
+    {
+        $this->queue || $this->initQueue($queueName);
+
+        return $this->queue->purge();
+    }
+
+    /**
+     * 删除一个队列
+     * @authname [权限名字]     0
+     * @DateTime 2019-09-20
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName 队列名字
+     * @return [type]
+     */
+    public function deleteQueue($queueName)
+    {
+        $this->queue || $this->initQueue($queueName);
+
+        return $this->queue->delete();
+    }
+
+    /**
+     * 从指定队列中取出一条消息
+     * @authname [权限名字]     0
+     * @DateTime 2019-09-20
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName [description]
+     * @return [type]
+     */
+    public function getMessage($queueName)
+    {
+        $this->queue || $this->initQueue($queueName);
+
+        return $this->queue->get(AMQP_AUTOACK)->getBody();
+    }
+
+    /**
+     * 消费者阻塞接收消息
+     * @authname      0
+     * @DateTime 2019-09-20
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName          消息队列名字
+     * @param  [type]   $receiveMessagefunc 消息回调函数
+     * @return [type]
+     */
+    public function receiveMessage($queueName, $receiveMessagefunc)
+    {
+        $this->queue || $this->initQueue($queueName);
+        //设置消息回调
+        $this->queue->consume($receiveMessagefunc);
+    }
+
+    /**
+     * 发送消息
+     * @authname [权限名字]     0
+     * @DateTime 2019-09-20
+     * @Author   mokuyu
+     *
+     * @param  [type]   $msgType 消息类型
+     * @param  [type]   $msgData 消息数据
+     * @return [type]
+     */
+    public function sendMessage($msgType, $msgData)
+    {
+        $this->setRouteName($msgType);
+        $this->conn || $this->initConn();
+        if (!is_string($msgData)) {
+            $msgData = json_encode($msgData);
+        }
+
+        return $this->exchange->publish($msgData, $this->routeName) ? true : false;
+    }
+
+    public function setExchangeName($name)
+    {
+        $this->exchangeName = 'exc_' . $name;
+    }
+
+    public function setQueueName($name)
+    {
+        $this->queueName = 'queue_' . $name;
+    }
+
+    public function setRouteName($name)
+    {
+        $this->routeName = 'route_' . $name;
+    }
+
     /**
      * 初始化连接
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @return   [type]
+     * @Author   mokuyu
+     *
+     * @return [type]
      */
     private function initConn()
     {
@@ -75,85 +194,15 @@ class RabbitMQQueue
         $this->exchange->declareExchange();
         // echo "Exchange Status:" .  . "\n";
     }
-    /**
-     * 发送消息
-     * @authname [权限名字]     0
-     * @Author   mokuyu
-     * @DateTime 2019-09-20
-     * @param    [type]     $msgType 消息类型
-     * @param    [type]     $msgData 消息数据
-     * @return   [type]
-     */
-    public function sendMessage($msgType, $msgData)
-    {
-        $this->setRouteName($msgType);
-        $this->conn || $this->initConn();
-        if (!is_string($msgData)) {
-            $msgData = json_encode($msgData);
-        }
-        return $this->exchange->publish($msgData, $this->routeName) ? true : false;
-    }
-    /**
-     * 从指定队列中取出一条消息
-     * @authname [权限名字]     0
-     * @Author   mokuyu
-     * @DateTime 2019-09-20
-     * @param    [type]     $queueName [description]
-     * @return   [type]
-     */
-    public function getMessage($queueName)
-    {
-        $this->queue || $this->initQueue($queueName);
-        return $this->queue->get(AMQP_AUTOACK)->getBody();
-    }
-    /**
-     * 消费者阻塞接收消息
-     * @authname      0
-     * @Author   mokuyu
-     * @DateTime 2019-09-20
-     * @param    [type]     $queueName          消息队列名字
-     * @param    [type]     $receiveMessagefunc 消息回调函数
-     * @return   [type]
-     */
-    public function receiveMessage($queueName, $receiveMessagefunc)
-    {
-        $this->queue || $this->initQueue($queueName);
-        //设置消息回调
-        $this->queue->consume($receiveMessagefunc);
-    }
-    /**
-     * 删除一个队列
-     * @authname [权限名字]     0
-     * @Author   mokuyu
-     * @DateTime 2019-09-20
-     * @param    [type]     $queueName 队列名字
-     * @return   [type]
-     */
-    public function deleteQueue($queueName)
-    {
-        $this->queue || $this->initQueue($queueName);
-        return $this->queue->delete();
-    }
-    /**
-     * 清空队列中的消息
-     * @authname [权限名字]     0
-     * @Author   mokuyu
-     * @DateTime 2019-09-20
-     * @param    [type]     $queueName [description]
-     * @return   [type]
-     */
-    public function clearQueue($queueName)
-    {
-        $this->queue || $this->initQueue($queueName);
-        return $this->queue->purge();
-    }
+
     /**
      * 初始化队列
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @param    [type]     $queueName [description]
-     * @return   [type]
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName [description]
+     * @return [type]
      */
     private function initQueue($queueName)
     {
@@ -169,17 +218,5 @@ class RabbitMQQueue
         $this->queue->declareQueue();
         //绑定交换机与队列，并指定路由键
         $this->queue->bind($this->exchangeName, $this->routeName);
-    }
-    public function setRouteName($name)
-    {
-        $this->routeName = 'route_' . $name;
-    }
-    public function setExchangeName($name)
-    {
-        $this->exchangeName = 'exc_' . $name;
-    }
-    public function setQueueName($name)
-    {
-        $this->queueName = 'queue_' . $name;
     }
 }

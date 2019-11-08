@@ -1,5 +1,5 @@
 <?php
-namespace ank\queue;
+namespace mokuyu\queue;
 
 use Enqueue\Redis\RedisConnectionFactory;
 
@@ -11,17 +11,23 @@ use Enqueue\Redis\RedisConnectionFactory;
  */
 class RedisQueue
 {
-    protected $host         = '127.0.0.1';
-    protected $port         = '5672';
-    protected $exchangeName = ''; //项目名字
-    protected $conn         = null;
+    //项目名字
+    protected $conn = null;
+
+    protected $exchangeName = '';
+
+    protected $host = '127.0.0.1';
+
+    protected $port = '5672';
+
     /**
      * 初始化配置
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @param    array      $config       连接配置信息
-     * @param    string     $exchangeName 交换机名字(项目名字)
+     * @Author   mokuyu
+     *
+     * @param array  $config       连接配置信息
+     * @param string $exchangeName 交换机名字(项目名字)
      */
     public function __construct($config = [], $exchangeName = 'default')
     {
@@ -30,49 +36,43 @@ class RedisQueue
             $this->$key = $value;
         }
     }
+
     /**
-     * 初始化连接
+     * 清空队列中的消息
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @return   [type]
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName [description]
+     * @return [type]
      */
-    private function initConn()
+    public function clearQueue($queueName)
     {
-        $factory = new RedisConnectionFactory([
-            'host'              => $this->host,
-            'port'              => $this->port,
-            'scheme_extensions' => ['phpredis'],
-        ]);
-        $this->conn = $factory->createContext();
+        return $this->conn->deleteQueue($this->exchangeName . ':' . $queueName);
     }
+
     /**
-     * 发送消息
+     * 删除一个队列
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @param    [type]     $msgType 消息类型
-     * @param    [type]     $msgData 消息数据
-     * @return   [type]
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName 队列名字
+     * @return [type]
      */
-    public function sendMessage($msgType, $msgData)
+    public function deleteQueue($queueName)
     {
-        // $this->setRouteName($msgType);
-        $this->conn || $this->initConn();
-        if (!is_string($msgData)) {
-            $msgData = json_encode($msgData);
-        }
-        $fooQueue = $this->conn->createQueue($this->exchangeName . ':' . $msgType);
-        $message  = $this->conn->createMessage($msgData);
-        return $this->conn->createProducer()->send($fooQueue, $message);
+        return $this->conn->deleteQueue($this->exchangeName . ':' . $queueName);
     }
+
     /**
      * 从指定队列中取出一条消息
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @param    [type]     $queueName [description]
-     * @return   [type]
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName [description]
+     * @return [type]
      */
     public function getMessage($queueName)
     {
@@ -87,19 +87,22 @@ class RedisQueue
             // 确认消费并删除消息，如果不执行下面则此条消息会被标识为已经接收,但并不会删除
             $consumer->acknowledge($message);
             //$consumer->reject($message);
+
             return $body;
         } else {
             return '';
         }
     }
+
     /**
      * 消费者阻塞接收消息
      * @authname      0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @param    [type]     $queueName          消息队列名字
-     * @param    [type]     $receiveMessagefunc 消息回调函数
-     * @return   [type]
+     * @Author   mokuyu
+     *
+     * @param  [type]   $queueName          消息队列名字
+     * @param  [type]   $receiveMessagefunc 消息回调函数
+     * @return [type]
      */
     public function receiveMessage($queueName, $receiveMessagefunc)
     {
@@ -122,28 +125,45 @@ class RedisQueue
             }
         }
     }
+
     /**
-     * 删除一个队列
+     * 发送消息
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @param    [type]     $queueName 队列名字
-     * @return   [type]
+     * @Author   mokuyu
+     *
+     * @param  [type]   $msgType 消息类型
+     * @param  [type]   $msgData 消息数据
+     * @return [type]
      */
-    public function deleteQueue($queueName)
+    public function sendMessage($msgType, $msgData)
     {
-        return $this->conn->deleteQueue($this->exchangeName . ':' . $queueName);
+        // $this->setRouteName($msgType);
+        $this->conn || $this->initConn();
+        if (!is_string($msgData)) {
+            $msgData = json_encode($msgData);
+        }
+        $fooQueue = $this->conn->createQueue($this->exchangeName . ':' . $msgType);
+        $message  = $this->conn->createMessage($msgData);
+
+        return $this->conn->createProducer()->send($fooQueue, $message);
     }
+
     /**
-     * 清空队列中的消息
+     * 初始化连接
      * @authname [权限名字]     0
-     * @Author   mokuyu
      * @DateTime 2019-09-20
-     * @param    [type]     $queueName [description]
-     * @return   [type]
+     * @Author   mokuyu
+     *
+     * @return [type]
      */
-    public function clearQueue($queueName)
+    private function initConn()
     {
-        return $this->conn->deleteQueue($this->exchangeName . ':' . $queueName);
+        $factory = new RedisConnectionFactory([
+            'host'              => $this->host,
+            'port'              => $this->port,
+            'scheme_extensions' => ['phpredis'],
+        ]);
+        $this->conn = $factory->createContext();
     }
 }
