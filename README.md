@@ -1,9 +1,9 @@
-# mokuyu-queue
+# ank-queue
 redis rabbitmq实现的消息队列  
 具体使用方法请看目录下面的示例文件
 # redis使用方法
 ```
-use mokuyu\queue\RedisQueue;
+use ank\queue\RedisQueue;
 //包含自动加载类
 $loader = require __DIR__ . '/vendor/autoload.php';
 
