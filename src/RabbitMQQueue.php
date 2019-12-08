@@ -1,5 +1,5 @@
 <?php
-namespace mokuyu\queue;
+namespace ank\queue;
 
 /**
  * 消息队列管理

@@ -1,5 +1,5 @@
 <?php
-namespace mokuyu\queue;
+namespace ank\queue;
 
 use Enqueue\Redis\RedisConnectionFactory;
 
