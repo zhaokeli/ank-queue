@@ -1,5 +1,5 @@
 <?php
-use mokuyu\queue\RabbitMQQueue;
+use ank\queue\RabbitMQQueue;
 //包含自动加载类
 $loader = require __DIR__ . '/vendor/autoload.php';
 

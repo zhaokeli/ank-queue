@@ -11,12 +11,16 @@ use Enqueue\Redis\RedisConnectionFactory;
  */
 class RedisQueue
 {
+    protected $auth = '';
+
     //项目名字
     protected $conn = null;
 
     protected $exchangeName = '';
 
     protected $host = '127.0.0.1';
+
+    protected $index = 0;
 
     protected $port = '5672';
 
@@ -157,13 +161,27 @@ class RedisQueue
      *
      * @return [type]
      */
+    // private function initConn()
+    // {
+    //     $factory = new RedisConnectionFactory([
+    //         'host'              => $this->host,
+    //         'port'              => $this->port,
+    //         'scheme_extensions' => ['phpredis'],
+    //     ]);
+    //     $this->conn = $factory->createContext();
+    // }
+
     private function initConn()
     {
-        $factory = new RedisConnectionFactory([
-            'host'              => $this->host,
-            'port'              => $this->port,
-            'scheme_extensions' => ['phpredis'],
-        ]);
+        // redis://zxj@127.0.0.1:6379/1
+        // ('redis+phpredis://example.com:1000'
+        $dsn = 'redis+phpredis://' . ($this->auth ? (':' . $this->auth . '@') : '') . $this->host . ':' . $this->port . '/' . $this->index;
+        // $factory = new RedisConnectionFactory([
+        //     'host'              => $this->host,
+        //     'port'              => $this->port,
+        //     'scheme_extensions' => ['phpredis'],
+        // ]);
+        $factory    = new RedisConnectionFactory($dsn);
         $this->conn = $factory->createContext();
     }
 }

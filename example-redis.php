@@ -1,14 +1,16 @@
 <?php
-use mokuyu\queue\RedisQueue;
+use ank\queue\RedisQueue;
 //包含自动加载类
 $loader = require __DIR__ . '/vendor/autoload.php';
 
 $queue = new RedisQueue([
-    'host' => '127.0.0.1',
-    'port' => 6379,
+    'host'  => '127.0.0.1',
+    'port'  => 6379,
+    'auth'  => 'adminrootkl',
+    'index' => 5,
 ], 'default' /*项目名字*/);
 // 发送一个消息
-// $queue->sendMessage('order', 'a message');
+$queue->sendMessage('order', 'a message');
 // // 取出一条信息
 // $message = $queue->getMessage('order');
 // var_dump($message);
