@@ -16,7 +16,7 @@
     },
     "require":
     {
-        "enqueue/redis": "^0.9.12"
+        "enqueue/redis": "^0.10"
     },
     "extra":
     {
