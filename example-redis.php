@@ -11,7 +11,7 @@ $queue = new RedisQueue([
 ], 'default' /*项目名字*/);
 // 发送一个消息
 $queue->sendMessage('order', 'a message');
-// // 取出一条信息
+// // 取出一条信息,自动确认消费并删除消息
 // $message = $queue->getMessage('order');
 // var_dump($message);
 // // 阻塞获取消息
